@@ -1,3 +1,4 @@
+/*
 package util;
 
 import java.io.File;
@@ -100,4 +101,5 @@ public class JarDiffCalculator {
 	            }
 	        }
 	    }
-}
+}    
+*/
