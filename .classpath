@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/home/local/ZOHOCORP/srini-10093/Work/Workspace/PatchMaker/commons.io_2.0.1.jar"/>
-	<classpathentry kind="lib" path="/home/local/ZOHOCORP/srini-10093/Work/Workspace/PatchMaker/apache-commons-codec-1.4.jar"/>
-	<classpathentry kind="lib" path="/home/local/ZOHOCORP/srini-10093/Work/jar/jfxrt.jar"/>
-	<classpathentry kind="output" path="bin"/>
-</classpath>
