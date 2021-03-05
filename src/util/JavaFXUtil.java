@@ -10,6 +10,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -27,7 +28,10 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 public class JavaFXUtil {
-	private static String lastVisitedDirectory = System.getProperty("user.home");
+	
+	private static String lastSourcePath = System.getProperty("user.home");
+	private static String lastBuildPath = System.getProperty("user.home");
+	
 
 	public static GridPane createFormPane() {
 		GridPane gridPane = new GridPane();
@@ -62,6 +66,15 @@ public class JavaFXUtil {
 		TextField textField = new TextField();
 		textField.setPrefHeight(prefHeight);
 		textField.setPromptText(promptText); //to set the hint text
+		return textField;
+	}
+	
+	public static ComboBox<String> generateComboBox(int prefHeight,String promptText, boolean editable) {
+		ComboBox<String> textField = new ComboBox<String>();
+		textField.setPrefHeight(prefHeight);
+		textField.setPromptText(promptText); //to set the hint text
+		textField.setPrefWidth(5000);
+		textField.setEditable(editable);
 		return textField;
 	}
 
@@ -111,6 +124,62 @@ public class JavaFXUtil {
 		alert.show();
 	}
 	
+	public static void setFileChooserActionWithComboBox(Stage stage,Button button,ComboBox<String> textField, boolean isDirchooser, boolean isZip) {
+		FileChooser fileChooser = new FileChooser();
+		String[] nameWithExtension = null;
+		if(!isZip) {
+			nameWithExtension = new String[] {"Java class files", "*.class"};
+		}else {
+			nameWithExtension = new String[] {"Zip files", "*.zip"};
+		}
+		fileChooser.getExtensionFilters().addAll(
+				new FileChooser.ExtensionFilter(nameWithExtension[0], nameWithExtension[1])
+				);
+		fileChooser.setInitialDirectory(new File(lastSourcePath));
+		DirectoryChooser directoryChooser = new DirectoryChooser();
+		directoryChooser.setInitialDirectory(new File(lastBuildPath));
+		
+		// Persisting the build path over each and every tabs
+		if(isDirchooser) {
+			File buildPathFile = new File(lastBuildPath);
+			String lastDir = buildPathFile.getName();
+			if(lastDir.toLowerCase().contains("appmanager")) {
+				textField.setValue(lastBuildPath);
+			}
+		}		
+				
+		button.setOnAction(e -> {
+			File selectedFile = null;
+			List<File> selectedFilesList = null;
+			if(isDirchooser) {
+				selectedFile = directoryChooser.showDialog(stage);
+			}else {
+				selectedFilesList = fileChooser.showOpenMultipleDialog(stage);
+			}
+			if(isDirchooser) {
+				if(selectedFile != null) {
+					textField.setValue(selectedFile.getPath());
+					lastBuildPath = selectedFile.getPath();
+				}
+			}else {
+				String fileNames = textField.getValue();
+				if(selectedFilesList!=null && !selectedFilesList.isEmpty()) {
+					for(File file : selectedFilesList) {
+						if("".equals(fileNames)) {
+							fileNames = file.getPath();
+						}else {
+							fileNames += ","+file.getPath();
+						}
+						lastSourcePath = file.getParentFile().getPath();
+					}
+					textField.setValue(fileNames);
+				}
+			}
+			fileChooser.setInitialDirectory(new File(lastSourcePath));
+			directoryChooser.setInitialDirectory(new File(lastBuildPath));
+		});
+	}
+	
 	public static void setFileChooserAction(Stage stage,Button button,TextField textField, boolean isDirchooser, boolean isZip) {
 		FileChooser fileChooser = new FileChooser();
 		String[] nameWithExtension = null;
@@ -122,9 +191,19 @@ public class JavaFXUtil {
 		fileChooser.getExtensionFilters().addAll(
 				new FileChooser.ExtensionFilter(nameWithExtension[0], nameWithExtension[1])
 				);
-		fileChooser.setInitialDirectory(new File(lastVisitedDirectory));
+		fileChooser.setInitialDirectory(new File(lastSourcePath));
 		DirectoryChooser directoryChooser = new DirectoryChooser();
-		directoryChooser.setInitialDirectory(new File(lastVisitedDirectory));
+		directoryChooser.setInitialDirectory(new File(lastBuildPath));
+		
+		// Persisting the build path over each and every tabs
+		if(isDirchooser) {
+			File buildPathFile = new File(lastBuildPath);
+			String lastDir = buildPathFile.getName();
+			if(lastDir.toLowerCase().contains("appmanager")) {
+				textField.setText(lastBuildPath);
+			}
+		}
+		
 		button.setOnAction(e -> {
 			File selectedFile = null;
 			List<File> selectedFilesList = null;
@@ -136,7 +215,7 @@ public class JavaFXUtil {
 			if(isDirchooser) {
 				if(selectedFile != null) {
 					textField.setText(selectedFile.getPath());
-					lastVisitedDirectory = selectedFile.getPath();
+					lastBuildPath = selectedFile.getPath();
 				}
 			}else {
 				String fileNames = textField.getText();
@@ -147,13 +226,13 @@ public class JavaFXUtil {
 						}else {
 							fileNames += ","+file.getPath();
 						}
-						lastVisitedDirectory = file.getParentFile().getPath();
+						lastSourcePath = file.getParentFile().getPath();
 					}
 					textField.setText(fileNames);
 				}
 			}
-			fileChooser.setInitialDirectory(new File(lastVisitedDirectory));
-			directoryChooser.setInitialDirectory(new File(lastVisitedDirectory));
+			fileChooser.setInitialDirectory(new File(lastSourcePath));
+			directoryChooser.setInitialDirectory(new File(lastBuildPath));
 		});
 	}
 	public static VBox getMenuVBox(MenuItem... items) {
@@ -168,4 +247,10 @@ public class JavaFXUtil {
 	     mb.getMenus().addAll(menu); 
 	     return new VBox(mb); 
 	}
+	
+	 public static void populateCompanyName(ComboBox<String> combo) {
+        combo.getItems().add("Intel");
+        combo.getItems().add("Apple");
+        combo.getItems().add("Microsoft");
+	 }
 }

@@ -28,6 +28,9 @@ public class PatchMaker extends Application {
 	// /home/local/ZOHOCORP/srini-10093/Work/Workspace/me-am-switchable/bin/com/me/apm/xenapp/util/XenAppUtil.class
 	// /home/local/ZOHOCORP/srini-10093/Work/Build/MMH_Dynamic/AppManager14
 	private static StringBuilder copiedFiles = new StringBuilder();
+	static CheckBox jspDirectory;
+	static CheckBox silentRestart;
+	static CheckBox zipNeeded;
 	public static void main(String[] args) {
 		launch(args);
 	}
@@ -81,7 +84,7 @@ public class PatchMaker extends Application {
 		 gridPane.setVgap(20);
 		 addUIControlsForPatchMaker(gridPane,primaryStage);	
 		 VBox vbox = new VBox(menuBarVBox,gridPane);
-		 return new Scene(vbox, 700, 200);
+		 return new Scene(vbox, 700, 250);
 	}
 	
 	private Scene getDynamicBuildScene(Stage primaryStage, VBox menuBarVBox) {
@@ -182,15 +185,27 @@ public class PatchMaker extends Application {
 	    ImageView view = new ImageView(img);
 	    view.setFitHeight(20);
 	    view.setPreserveRatio(true);
+	    //Check boxes
+	    
+	    jspDirectory = new CheckBox("Jsp Directory");
+	    silentRestart = new CheckBox("Silent Restart");
+	    zipNeeded = new CheckBox("Zip Needed");
+
+	    
+        HBox checkHBox = new HBox(jspDirectory,silentRestart,zipNeeded);
+        checkHBox.setSpacing(20);
+        checkHBox.setAlignment(Pos.BASELINE_LEFT);
+	    gridPane.add(checkHBox, 1, 0);
+	    
 		// Add Name Label
 		Label sourcePathLabel = new Label("Source Path");
-		gridPane.add(sourcePathLabel, 0,0);
+		gridPane.add(sourcePathLabel, 0,1);
 
 		// Add Name Text Field
-		TextField sourcePath = JavaFXUtil.generateTextField(20, "Choose the class file");
-		gridPane.add(sourcePath, 1,0);
+		ComboBox<String> sourcePath = JavaFXUtil.generateComboBox(20, "Choose the class file", true);
+		gridPane.add(sourcePath, 1,1);
 
-		sourcePath.focusedProperty().addListener((observable,  oldValue,  newValue) -> {
+		jspDirectory.focusedProperty().addListener((observable,  oldValue,  newValue) -> {
 			if(newValue && firstTime.get()){
 				gridPane.requestFocus(); // Delegate the focus to container
 				firstTime.setValue(false); // Variable value changed for future references
@@ -204,21 +219,21 @@ public class PatchMaker extends Application {
 		//Source Choose Button
 		Button srcChoose = JavaFXUtil.generateButton("", 20, 10, true);
 		srcChoose.setGraphic(view1);
-		gridPane.add(srcChoose, 2, 0);
+		gridPane.add(srcChoose, 2, 1);
 		GridPane.setHalignment(srcChoose, HPos.CENTER);
 
 		// Add Email Label
 		Label buildPathLabel = new Label("Build Path");
-		gridPane.add(buildPathLabel, 0, 1);
+		gridPane.add(buildPathLabel, 0, 2);
 
 		// Add Email Text Field
-		TextField buildPath = JavaFXUtil.generateTextField(20, "Choose AppManager directory");
-		gridPane.add(buildPath, 1, 1);
+		ComboBox<String> buildPath = JavaFXUtil.generateComboBox(20, "Choose AppManager directory", true);
+		gridPane.add(buildPath, 1, 2);
 
 		//Destination Choose Button
 		Button desChoose = JavaFXUtil.generateButton("", 20, 10, true);
 		desChoose.setGraphic(view);
-		gridPane.add(desChoose, 2, 1);
+		gridPane.add(desChoose, 2, 2);
 		GridPane.setHalignment(desChoose, HPos.CENTER);
 
 		// Generate Patch Button
@@ -231,28 +246,30 @@ public class PatchMaker extends Application {
 		Button restartApplicationButton = JavaFXUtil.generateButton("Restart Application", 20, 150, true);
 		HBox hbox = new HBox(generateButton, applyPatchButton,restartApplicationButton);
 
-		gridPane.add(hbox, 1, 2);
+		gridPane.add(hbox, 1, 3);
 		hbox.setSpacing(30);
 		hbox.setAlignment(Pos.BASELINE_CENTER);
 
-		JavaFXUtil.setFileChooserAction(primaryStage, srcChoose, sourcePath, false, false);
-		JavaFXUtil.setFileChooserAction(primaryStage, desChoose, buildPath, true, false);
+		JavaFXUtil.setFileChooserActionWithComboBox(primaryStage, srcChoose, sourcePath, false, false);
+		JavaFXUtil.setFileChooserActionWithComboBox(primaryStage, desChoose, buildPath, true, false);
 		
 		generateButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				if(sourcePath.getText().isEmpty()) {
+				if(sourcePath.getValue() == null || sourcePath.getValue().isEmpty()) {
 					JavaFXUtil.showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter source file path");
 					return;
 				}
-				if(buildPath.getText().isEmpty()) {
+				if(buildPath.getValue() == null || buildPath.getValue().isEmpty()) {
 					JavaFXUtil.showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter build path");
 					return;
 				}
-				String output= generatePatch(sourcePath.getText(), buildPath.getText(), true);
+				String output= generatePatch(sourcePath.getValue(), buildPath.getValue(), true);
 				if(output!=null && output.contains("Successful")) {
-					String zipPath = new File(buildPath.getText()).getParentFile().getPath();
-					ZipUtil.zipDirectory(zipPath+File.separator+"working", zipPath+File.separator+"working.zip");
+					if(zipNeeded.isSelected()) {
+						String zipPath = new File(buildPath.getValue()).getParentFile().getPath();
+						ZipUtil.zipDirectory(zipPath+File.separator+"working", zipPath+File.separator+"working.zip");
+					}
 					JavaFXUtil.showAlertNew(Alert.AlertType.INFORMATION, gridPane.getScene().getWindow(), "Message", "Patch generated successfully!!!", copiedFiles.toString());
 					copiedFiles = new StringBuilder();
 				}else {
@@ -265,15 +282,15 @@ public class PatchMaker extends Application {
 		applyPatchButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				if(sourcePath.getText().isEmpty()) {
+				if(sourcePath.getValue() == null || sourcePath.getValue().isEmpty()) {
 					JavaFXUtil.showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter source file path");
 					return;
 				}
-				if(buildPath.getText().isEmpty()) {
+				if(buildPath.getValue() == null || buildPath.getValue().isEmpty()) {
 					JavaFXUtil.showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter build path");
 					return;
 				}
-				String output = generatePatch(sourcePath.getText(), buildPath.getText(), false);
+				String output = generatePatch(sourcePath.getValue(), buildPath.getValue(), false);
 				if(output!=null && output.contains("Successful")) {
 					JavaFXUtil.showAlertNew(Alert.AlertType.INFORMATION, gridPane.getScene().getWindow(), "Message", "Patch applied successfully!!!", copiedFiles.toString());
 					copiedFiles = new StringBuilder();
@@ -287,15 +304,11 @@ public class PatchMaker extends Application {
 		restartApplicationButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				if(sourcePath.getText().isEmpty()) {
-					JavaFXUtil.showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter source file path");
-					return;
-				}
-				if(buildPath.getText().isEmpty()) {
+				if(buildPath.getValue() == null || buildPath.getValue().isEmpty()) {
 					JavaFXUtil.showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter build path");
 					return;
 				}
-				String output = restartApplication(buildPath.getText());
+				String output = restartApplication(buildPath.getValue());
 				if(output!=null) {
 					JavaFXUtil.showAlert(Alert.AlertType.INFORMATION, gridPane.getScene().getWindow(), "Message", output);
 				}
@@ -338,10 +351,17 @@ public class PatchMaker extends Application {
 		String out="Successful";
 		//working/classes/AdventNetAppManager.jar
 		//working/WEB-INF/lib/AdventNetAppManagerWebClient.jar
-		
+		try {
+			File buildPathFile = new File(buildPath);
+			if(!buildPathFile.getName().toLowerCase().contains("appmanager")) {
+				return "Please choose build path upto Appmanager";
+			}
+		}catch(Exception e) {
+			return "Choose correct path";
+		}
 		//Special handling done for Ubuntu 20.04,it will remove the clipboard content if there is any
-		if(sourcePathArr.contains("x-special/nautilus-clipboardcopyfile://")) {
-			sourcePathArr = sourcePathArr.replace("x-special/nautilus-clipboardcopyfile://", "");
+		if(sourcePathArr.contains("x-special/nautilus-clipboardcopy")) {
+			sourcePathArr = sourcePathArr.replace("x-special/nautilus-clipboardcopy", "");
 		}
 		if(sourcePathArr.contains("file://")) {
 			sourcePathArr = sourcePathArr.replace("file://", ",");
@@ -351,14 +371,6 @@ public class PatchMaker extends Application {
 		for(String sourcePath : sourcePathSplitted) {
 			if(sourcePath.trim().isEmpty()) {
 				continue;
-			}
-			try {
-				File buildPathFile = new File(buildPath);
-				if(!buildPathFile.getName().toLowerCase().contains("appmanager")) {
-					return "Please choose build path upto Appmanager";
-				}
-			}catch(Exception e) {
-				return "Choose correct path";
 			}
 			try {
 				ArrayList<String> workingClassPath = extractPath(buildPath+File.separator+"working"+File.separator+"classes"+File.separator+"AdventNetAppManager.jar",sourcePath);
@@ -390,6 +402,20 @@ public class PatchMaker extends Application {
 						}else {
 							copyFilesToDestinations(newSource,buildPath,"working"+File.separator+"WEB-INF"+File.separator+"classes",path);	
 						}
+					}
+				}
+				///home/local/ZOHOCORP/srini-10093/Work/Workspace/me-am-switchable/bin/test/com/adventnet/adaptors/clients/AbstractJMXConnector.class
+				// Generate JSP files directory
+				if(jspDirectory.isSelected()) {
+					String srcPath = buildPath;
+					if(isGenerate) {
+						File parentFile = new File(buildPath);
+						srcPath = parentFile.getParentFile().getPath();
+					}
+					File jspDir = new File(srcPath+File.separator+"working"+File.separator+"WEB-INF"+File.separator+"classes"+File.separator+"org"+File.separator+"apache"+File.separator+"jsp"+File.separator+"jsp");
+					System.out.println(jspDir.toString());
+					if(!jspDir.exists()) {
+						jspDir.mkdirs();
 					}
 				}
 			} catch (Exception e) {
@@ -450,12 +476,24 @@ public class PatchMaker extends Application {
 
 	 private static String restartApplication(String path) {
 	    	String out="starting..."; 
+	    	try {
+				File buildPathFile = new File(path);
+				if(!buildPathFile.getName().toLowerCase().contains("appmanager")) {
+					return "Please choose build path upto Appmanager";
+				}
+			}catch(Exception e) {
+				return "Choose correct path";
+			}
 	    	try{
-			Runtime run= Runtime.getRuntime();
-			File s=new File(path);
-			Process execute=run.exec("sh shutdownApplicationsManager.sh -force", null, s);
-			execute.waitFor();
-			run.exec("gnome-terminal -- sh startApplicationsManager.sh", null, s);
+				Runtime run= Runtime.getRuntime();
+				File s=new File(path);
+				Process execute=run.exec("sh shutdownApplicationsManager.sh -force", null, s);
+				execute.waitFor();
+				if(silentRestart.isSelected()) {
+					run.exec("sh startApplicationsManager.sh", null, s);
+				}else {
+					run.exec("gnome-terminal -- sh startApplicationsManager.sh", null, s);
+				}
 	    	}catch (Exception e) {
 				out=e.getMessage();
 			}
