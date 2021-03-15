@@ -1,6 +1,6 @@
-/*
-package util;
 
+package util;
+/*
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,9 +11,9 @@ import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FilenameUtils;
-
+*/
 public class JarDiffCalculator {
-
+/*
 	public static void main(String[] args) {
 		String workspaceJarPath = "/home/local/ZOHOCORP/srini-10093/Work/jar";
 		String buildPath = "/media/srini-10093/6aff8ee8-6a8f-49df-ba36-fde6bf26534d/Work/Build/NTP_SecondRound/AppManager15";
@@ -101,5 +101,6 @@ public class JarDiffCalculator {
 	            }
 	        }
 	    }
+	*/
 }    
-*/
+

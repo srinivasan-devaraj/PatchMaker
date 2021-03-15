@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -37,72 +38,72 @@ public class PatchMaker extends Application {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		primaryStage.setTitle("Patch Maker Application");
-		
-		 MenuItem patchMenuItem = new MenuItem("Patch Maker");
-		 MenuItem dynamicBuildMenuItem = new MenuItem("Dynamic Build");
-		 MenuItem aboutMenuItem = new MenuItem("About Us");
-		 
-	     VBox menuVBox = JavaFXUtil.getMenuVBox(patchMenuItem, dynamicBuildMenuItem, aboutMenuItem); 
-		
-	     // Default Scene - Patch Maker
-	     Scene patchMakerScene = getPatchMakerScene(primaryStage, menuVBox);
-	     primaryStage.setScene(patchMakerScene);
-		
-	     primaryStage.show();
-		
-	     patchMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+
+		MenuItem patchMenuItem = new MenuItem("Patch Maker");
+		MenuItem dynamicBuildMenuItem = new MenuItem("Dynamic Build");
+		MenuItem aboutMenuItem = new MenuItem("About Us");
+
+		VBox menuVBox = JavaFXUtil.getMenuVBox(patchMenuItem, dynamicBuildMenuItem, aboutMenuItem); 
+
+		// Default Scene - Patch Maker
+		Scene patchMakerScene = getPatchMakerScene(primaryStage, menuVBox);
+		primaryStage.setScene(patchMakerScene);
+
+		primaryStage.show();
+
+		patchMenuItem.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
 				System.out.println("Patch Maker Menu Item Called");
 				Scene patchMakerScene = getPatchMakerScene(primaryStage, menuVBox);
 				primaryStage.setScene(patchMakerScene);
 			}
-	     });
-	     
-	     dynamicBuildMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+		});
+
+		dynamicBuildMenuItem.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
 				System.out.println("Dynamic Build Menu Item Called");
 				Scene patchMakerScene = getDynamicBuildScene(primaryStage, menuVBox);
 				primaryStage.setScene(patchMakerScene);
 			}
-		 });
-	     
-	     aboutMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+		});
+
+		aboutMenuItem.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
 				System.out.println("About Us Menu Item Called");
 				//Scene patchMakerScene = getAboutUsScene(primaryStage, menuVBox);
 				//primaryStage.setScene(patchMakerScene);
 			}
-		 });
-       
+		});
+
 	}
-	
+
 	private Scene getPatchMakerScene(Stage primaryStage, VBox menuBarVBox) {
-		 GridPane gridPane = JavaFXUtil.createFormPane();
-		 gridPane.setVgap(20);
-		 addUIControlsForPatchMaker(gridPane,primaryStage);	
-		 VBox vbox = new VBox(menuBarVBox,gridPane);
-		 return new Scene(vbox, 700, 250);
+		GridPane gridPane = JavaFXUtil.createFormPane();
+		gridPane.setVgap(20);
+		addUIControlsForPatchMaker(gridPane,primaryStage);	
+		VBox vbox = new VBox(menuBarVBox,gridPane);
+		return new Scene(vbox, 700, 250);
 	}
-	
+
 	private Scene getDynamicBuildScene(Stage primaryStage, VBox menuBarVBox) {
-		 GridPane gridPane = JavaFXUtil.createFormPane();
-		 gridPane.setVgap(20);
-		 addUIControlsForDynamicBuild(gridPane,primaryStage);	
-		 VBox vbox = new VBox(menuBarVBox,gridPane);
-		 return new Scene(vbox, 700, 200);
+		GridPane gridPane = JavaFXUtil.createFormPane();
+		gridPane.setVgap(20);
+		addUIControlsForDynamicBuild(gridPane,primaryStage);	
+		VBox vbox = new VBox(menuBarVBox,gridPane);
+		return new Scene(vbox, 700, 200);
 	}
-	
+
 	private void addUIControlsForDynamicBuild(GridPane gridPane,Stage primaryStage) {
 		// Add Header
 		final BooleanProperty firstTime = new SimpleBooleanProperty(true); // Variable to store the focus on stage load
 
 		Image img = new Image("file.png");
-	    ImageView view = new ImageView(img);
-	    view.setFitHeight(20);
-	    view.setPreserveRatio(true);
+		ImageView view = new ImageView(img);
+		view.setFitHeight(20);
+		view.setPreserveRatio(true);
 		// Add Name Label
 		Label sourcePathLabel = new Label("JSP Zip File");
 		gridPane.add(sourcePathLabel, 0,0);
@@ -118,10 +119,10 @@ public class PatchMaker extends Application {
 			}
 		});
 
-		 //Image img = new Image("file.png");
-		    ImageView view1 = new ImageView(img);
-		    view1.setFitHeight(20);
-		    view1.setPreserveRatio(true);
+		//Image img = new Image("file.png");
+		ImageView view1 = new ImageView(img);
+		view1.setFitHeight(20);
+		view1.setPreserveRatio(true);
 		//Source Choose Button
 		Button srcChoose = JavaFXUtil.generateButton("", 20, 10, true);
 		srcChoose.setGraphic(view1);
@@ -144,7 +145,7 @@ public class PatchMaker extends Application {
 
 		// Generate Patch Button
 		Button generateButton = JavaFXUtil.generateButton("Convert into Dynamic", 20, 250, true);
-		
+
 		HBox hbox = new HBox(generateButton);
 
 		gridPane.add(hbox, 1, 2);
@@ -153,7 +154,7 @@ public class PatchMaker extends Application {
 
 		JavaFXUtil.setFileChooserAction(primaryStage, srcChoose, sourcePath, false, true);
 		JavaFXUtil.setFileChooserAction(primaryStage, desChoose, buildPath, true, false);
-		
+
 		generateButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
@@ -174,29 +175,32 @@ public class PatchMaker extends Application {
 			}
 		});
 	}
-	
-	
+
+
 
 	private void addUIControlsForPatchMaker(GridPane gridPane,Stage primaryStage) {
 		// Add Header
 		final BooleanProperty firstTime = new SimpleBooleanProperty(true); // Variable to store the focus on stage load
 
 		Image img = new Image("file.png");
-	    ImageView view = new ImageView(img);
-	    view.setFitHeight(20);
-	    view.setPreserveRatio(true);
-	    //Check boxes
-	    
-	    jspDirectory = new CheckBox("Jsp Directory");
-	    silentRestart = new CheckBox("Silent Restart");
-	    zipNeeded = new CheckBox("Zip Needed");
+		ImageView view = new ImageView(img);
+		view.setFitHeight(20);
+		view.setPreserveRatio(true);
+		//Check boxes
 
-	    
-        HBox checkHBox = new HBox(jspDirectory,silentRestart,zipNeeded);
-        checkHBox.setSpacing(20);
-        checkHBox.setAlignment(Pos.BASELINE_LEFT);
-	    gridPane.add(checkHBox, 1, 0);
-	    
+		jspDirectory = new CheckBox("Jsp Directory");
+		jspDirectory.setTooltip(new Tooltip("Creates directory for jsp_class files while Applying/Generating Patch"));
+		silentRestart = new CheckBox("Silent Restart");
+		silentRestart.setTooltip(new Tooltip("Restarts without opening Terminal"));
+		zipNeeded = new CheckBox("Zip Needed");
+		zipNeeded.setTooltip(new Tooltip("Creates zip file while generating Patch"));
+
+
+		HBox checkHBox = new HBox(jspDirectory,silentRestart,zipNeeded);
+		checkHBox.setSpacing(20);
+		checkHBox.setAlignment(Pos.BASELINE_LEFT);
+		gridPane.add(checkHBox, 1, 0);
+
 		// Add Name Label
 		Label sourcePathLabel = new Label("Source Path");
 		gridPane.add(sourcePathLabel, 0,1);
@@ -212,10 +216,10 @@ public class PatchMaker extends Application {
 			}
 		});
 
-		 //Image img = new Image("file.png");
-		    ImageView view1 = new ImageView(img);
-		    view1.setFitHeight(20);
-		    view1.setPreserveRatio(true);
+		//Image img = new Image("file.png");
+		ImageView view1 = new ImageView(img);
+		view1.setFitHeight(20);
+		view1.setPreserveRatio(true);
 		//Source Choose Button
 		Button srcChoose = JavaFXUtil.generateButton("", 20, 10, true);
 		srcChoose.setGraphic(view1);
@@ -241,7 +245,7 @@ public class PatchMaker extends Application {
 
 		// Apply Patch Button
 		Button applyPatchButton = JavaFXUtil.generateButton("Apply Patch", 20, 150, true);
-		
+
 		// Apply Restart Button
 		Button restartApplicationButton = JavaFXUtil.generateButton("Restart Application", 20, 150, true);
 		HBox hbox = new HBox(generateButton, applyPatchButton,restartApplicationButton);
@@ -252,7 +256,7 @@ public class PatchMaker extends Application {
 
 		JavaFXUtil.setFileChooserActionWithComboBox(primaryStage, srcChoose, sourcePath, false, false);
 		JavaFXUtil.setFileChooserActionWithComboBox(primaryStage, desChoose, buildPath, true, false);
-		
+
 		generateButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
@@ -300,7 +304,7 @@ public class PatchMaker extends Application {
 
 			}
 		});
-		
+
 		restartApplicationButton.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
@@ -315,7 +319,7 @@ public class PatchMaker extends Application {
 			}
 		});
 	}
-	
+
 	public static String convertIntoDynamic(String zipSourcePath, String buildPath) {
 		String out="Successful";
 		File buildPathFile = new File(buildPath);
@@ -346,7 +350,7 @@ public class PatchMaker extends Application {
 		DynamicBuildUtil.doEachTask(buildPath, zipSourcePath);
 		return out;
 	}
-	
+
 	public static String generatePatch(String sourcePathArr,String buildPath,boolean isGenerate) {
 		String out="Successful";
 		//working/classes/AdventNetAppManager.jar
@@ -375,7 +379,7 @@ public class PatchMaker extends Application {
 			try {
 				ArrayList<String> workingClassPath = extractPath(buildPath+File.separator+"working"+File.separator+"classes"+File.separator+"AdventNetAppManager.jar",sourcePath);
 				ArrayList<String> webinfPath = extractPath(buildPath+File.separator+"working"+File.separator+"WEB-INF"+File.separator+"lib"+File.separator+"AdventNetAppManagerWebClient.jar",sourcePath);
-				
+
 				if(!workingClassPath.isEmpty()) {
 					for(String path : workingClassPath) {
 						String[] arr1 = sourcePath.split(File.separator);
@@ -448,14 +452,15 @@ public class PatchMaker extends Application {
 		/* WARNING This copies same source into different file hence skipped this feature */
 		File srcFile = new File(classFile);
 		String srcFileName = srcFile.getName().replace(".class", ""); // AMSecurtiyUtil
-		
+		List<String> innerClassFiles = new ArrayList<String>();
+		String newClassFilesPath = "";
+
 		ArrayList<String> toReturn = new ArrayList<String>();
 		ZipFile zipFile = new ZipFile(path);
 		Enumeration<? extends ZipEntry> entries = zipFile.entries();
 		while(entries.hasMoreElements()) {
 			ZipEntry zipEntry = entries.nextElement();
 			String filePath = zipEntry.getName();
-			/* WARNING This copies same source into different file hence skipped this feature */
 			File file = new File(filePath);
 			String fileName = file.getName(); //AMSecurityUtil$1.class
 			if(fileName.contains("$")) {
@@ -463,41 +468,61 @@ public class PatchMaker extends Application {
 				String strBefore$ = fileName.substring(0, index);
 				if(strBefore$.equals(srcFileName)) {
 					toReturn.add(filePath);
+					innerClassFiles.add(fileName);
 				}
 			}
-			
 			if(classFile.endsWith(filePath)) {
+				newClassFilesPath = file.getParent();
 				toReturn.add(filePath);
 			}
 		}
 		zipFile.close();
+
+		// Adds new Inner Class files - Starts
+		if(!toReturn.isEmpty()) {
+			File srcFileDir = srcFile.getParentFile();
+			File[] listOfFiles = srcFileDir.listFiles();
+			for(File file : listOfFiles){
+				if(file.isFile()) {
+					String fileName = file.getName();
+					if(fileName.contains("$")) {
+						int index = fileName.indexOf("$");
+						String strBefore$ = fileName.substring(0, index);
+						if(strBefore$.equals(srcFileName) && !innerClassFiles.contains(fileName)) {
+							toReturn.add(newClassFilesPath+File.separator+fileName);
+						}
+					}
+				}
+			}
+		}
+		// Adds new Inner Class files - Ends 
 		return toReturn;
 	}
 
-	 private static String restartApplication(String path) {
-	    	String out="starting..."; 
-	    	try {
-				File buildPathFile = new File(path);
-				if(!buildPathFile.getName().toLowerCase().contains("appmanager")) {
-					return "Please choose build path upto Appmanager";
-				}
-			}catch(Exception e) {
-				return "Choose correct path";
+	private static String restartApplication(String path) {
+		String out="starting..."; 
+		try {
+			File buildPathFile = new File(path);
+			if(!buildPathFile.getName().toLowerCase().contains("appmanager")) {
+				return "Please choose build path upto Appmanager";
 			}
-	    	try{
-				Runtime run= Runtime.getRuntime();
-				File s=new File(path);
-				Process execute=run.exec("sh shutdownApplicationsManager.sh -force", null, s);
-				execute.waitFor();
-				if(silentRestart.isSelected()) {
-					run.exec("sh startApplicationsManager.sh", null, s);
-				}else {
-					run.exec("gnome-terminal -- sh startApplicationsManager.sh", null, s);
-				}
-	    	}catch (Exception e) {
-				out=e.getMessage();
-			}
-	      return out;
+		}catch(Exception e) {
+			return "Choose correct path";
 		}
+		try{
+			Runtime run= Runtime.getRuntime();
+			File s=new File(path);
+			Process execute=run.exec("sh shutdownApplicationsManager.sh -force", null, s);
+			execute.waitFor();
+			if(silentRestart.isSelected()) {
+				run.exec("sh startApplicationsManager.sh", null, s);
+			}else {
+				run.exec("gnome-terminal -- sh startApplicationsManager.sh", null, s);
+			}
+		}catch (Exception e) {
+			out=e.getMessage();
+		}
+		return out;
+	}
 
 }
