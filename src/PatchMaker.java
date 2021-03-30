@@ -7,18 +7,26 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import javafx.application.Application;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import util.DynamicBuildUtil;
 import util.JavaFXUtil;
@@ -32,28 +40,52 @@ public class PatchMaker extends Application {
 	static CheckBox jspDirectory;
 	static CheckBox silentRestart;
 	static CheckBox zipNeeded;
+	public static JSONArray overallJSON = null;
+	StatusUpdaterThread thread = null;
+	public static final long UPDATE_DELAY = 1 * 60 * 1000; // 1 Min
 	public static void main(String[] args) {
 		launch(args);
+	}
+	@Override
+	public void stop() throws Exception {
+		thread.interrupt();
+		super.stop();
 	}
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		primaryStage.setTitle("Patch Maker Application");
 
+		MenuItem dashboardItem = new MenuItem("Dashboard");
 		MenuItem patchMenuItem = new MenuItem("Patch Maker");
 		MenuItem dynamicBuildMenuItem = new MenuItem("Dynamic Build");
 		MenuItem aboutMenuItem = new MenuItem("About Us");
 
-		VBox menuVBox = JavaFXUtil.getMenuVBox(patchMenuItem, dynamicBuildMenuItem, aboutMenuItem); 
+		VBox menuVBox = JavaFXUtil.getMenuVBox(dashboardItem, patchMenuItem, dynamicBuildMenuItem); 
 
-		// Default Scene - Patch Maker
-		Scene patchMakerScene = getPatchMakerScene(primaryStage, menuVBox);
-		primaryStage.setScene(patchMakerScene);
+		// Default Scene - Dashboard Scene
+		Scene defaultScene = getDashboardScene(primaryStage, menuVBox);
+		primaryStage.setScene(defaultScene);
 
 		primaryStage.show();
 
+		dashboardItem.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(ActionEvent event) {
+				if(thread != null) {
+					thread.interrupt();
+				}
+				System.out.println("Dashboard Menu Item Called");
+				Scene dashboardScene = getDashboardScene(primaryStage, menuVBox);
+				primaryStage.setScene(dashboardScene);
+			}
+		});
+		
 		patchMenuItem.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				if(thread != null) {
+					thread.interrupt();
+				}
 				System.out.println("Patch Maker Menu Item Called");
 				Scene patchMakerScene = getPatchMakerScene(primaryStage, menuVBox);
 				primaryStage.setScene(patchMakerScene);
@@ -63,6 +95,9 @@ public class PatchMaker extends Application {
 		dynamicBuildMenuItem.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				if(thread != null) {
+					thread.interrupt();
+				}
 				System.out.println("Dynamic Build Menu Item Called");
 				Scene patchMakerScene = getDynamicBuildScene(primaryStage, menuVBox);
 				primaryStage.setScene(patchMakerScene);
@@ -72,6 +107,9 @@ public class PatchMaker extends Application {
 		aboutMenuItem.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
+				if(thread != null) {
+					thread.interrupt();
+				}
 				System.out.println("About Us Menu Item Called");
 				//Scene patchMakerScene = getAboutUsScene(primaryStage, menuVBox);
 				//primaryStage.setScene(patchMakerScene);
@@ -80,7 +118,24 @@ public class PatchMaker extends Application {
 
 	}
 
+	private Scene getDashboardScene(Stage primaryStage, VBox menuBarVBox) {
+		GridPane gridPane = JavaFXUtil.createFormPaneForOuterDash();
+		primaryStage.setMaximized(true);
+		gridPane.setVgap(20);
+		if(overallJSON == null) {
+			overallJSON = FindAllFile.getAllData();
+		}
+		addUIControlsForDashboard(gridPane);
+		VBox vbox = new VBox(menuBarVBox,gridPane);
+		vbox.setSpacing(5);
+        int width = (int) Screen.getPrimary().getBounds().getWidth();
+        int height = (int) Screen.getPrimary().getBounds().getHeight();
+
+		return new Scene(vbox, width, height);
+	}
+	
 	private Scene getPatchMakerScene(Stage primaryStage, VBox menuBarVBox) {
+		primaryStage.setMaximized(false);
 		GridPane gridPane = JavaFXUtil.createFormPane();
 		gridPane.setVgap(20);
 		addUIControlsForPatchMaker(gridPane,primaryStage);	
@@ -89,6 +144,7 @@ public class PatchMaker extends Application {
 	}
 
 	private Scene getDynamicBuildScene(Stage primaryStage, VBox menuBarVBox) {
+		primaryStage.setMaximized(false);
 		GridPane gridPane = JavaFXUtil.createFormPane();
 		gridPane.setVgap(20);
 		addUIControlsForDynamicBuild(gridPane,primaryStage);	
@@ -177,6 +233,197 @@ public class PatchMaker extends Application {
 	}
 
 
+	public void addUIControlsForDashboard(GridPane gridPane) {
+	
+		/*
+		HBox checkHBox = new HBox(jspDirectory);
+		checkHBox.setSpacing(20);
+		checkHBox.setAlignment(Pos.BASELINE_LEFT);
+		gridPane.add(checkHBox, 1, 0);
+		
+		HBox checkHBox1 = new HBox(silentRestart);
+		checkHBox1.setSpacing(20);
+		checkHBox1.setAlignment(Pos.BASELINE_LEFT);
+		gridPane.add(checkHBox1, 1, 1);
+		*/
+		GridPane gP = JavaFXUtil.createGridPaneForDash(HPos.LEFT);
+
+		try {
+			int size = overallJSON.length();
+			for(int i=0;i<size;i++) {
+				JSONObject row = overallJSON.getJSONObject(i);
+				HBox rowHBox = getSingleRowForDashboard(i+1,row);
+				GridPane.setHgrow(rowHBox, Priority.ALWAYS);
+				gP.add(rowHBox, 1, i);
+			}			
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		ScrollPane scrollPane = new ScrollPane();
+		scrollPane.setFitToHeight(true);
+		scrollPane.setFitToWidth(true);
+
+		scrollPane.setContent(gP);
+		//scrollPane
+		Label snoLb = JavaFXUtil.getLabel("S.No", 35);
+		Label nameLb = JavaFXUtil.getLabel("Name", 245);
+		Label versionLb = JavaFXUtil.getLabel("Version", 60);
+		Label editionLb = JavaFXUtil.getLabel("Edition", 60);
+		Label buildStatus = JavaFXUtil.getLabel("Status", 60);
+		Label dbTypeLb = JavaFXUtil.getLabel("DB Type", 70);
+		Label dynamicLb = JavaFXUtil.getLabel("Dynamic", 65);
+		Label consoleLb = JavaFXUtil.getLabel("Console", 60);
+		Label actionLb = JavaFXUtil.getLabel("Action", 60);
+		Label buildPathLb = JavaFXUtil.getLabel("Path", 60);
+		HBox header = new HBox(snoLb,nameLb,versionLb,editionLb,buildStatus,dbTypeLb,dynamicLb,buildPathLb,consoleLb,actionLb);
+		header.setSpacing(20);
+		header.setPadding(new Insets(20));
+		header.setAlignment(Pos.CENTER_LEFT);
+		header.setStyle("-fx-font-weight: bold");
+
+		header.setBorder(new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID, null , null)));
+		gridPane.add(header,1,0);
+		gridPane.add(scrollPane, 1, 1);
+		
+		thread = new StatusUpdaterThread(gP);
+		thread.start();
+	}
+
+	private HBox getSingleRowForDashboard(int i,JSONObject row) {
+		String version = "-",name ="-",dbType="-",edition="-",host = "",port = "",buildPath = "";
+		boolean status = false,isDynamic = false;
+		
+		try {
+			version = row.getString("Version");
+		} catch (Exception e) {
+			//e.printStackTrace();
+		}
+		try {
+			host = row.getString("Host");
+			port = row.getString("Port");
+			name = host+"_"+port;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		final String hostFinal = host,portFinal = port;
+		try {
+			dbType = row.getString("DBType").toUpperCase();
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
+		try {
+			edition = row.getString("Edition");
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+		}
+		try {
+			buildPath = row.getString("BuildPath");
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+		}
+		final String url = "http://"+host+":"+port+"/",dir = buildPath;
+		Label snoLb = JavaFXUtil.getLabel(""+i, 20);
+		Label nameLb = JavaFXUtil.getLabel(name, 260);
+		Label versionLb = JavaFXUtil.getLabel(version, 60);
+		Label editionLb = JavaFXUtil.getLabel(edition, 60);
+		Label dbTypeLb = JavaFXUtil.getLabel(dbType, 70);
+		
+		try {
+			status = row.getBoolean("IsRunning");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		try {
+			isDynamic = row.getBoolean("IsDynamic");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		HBox imageHBox = new HBox(JavaFXUtil.getBuildStatusImage(status));
+		imageHBox.setAlignment(Pos.CENTER);
+		imageHBox.setMaxWidth(60);
+		imageHBox.setMinWidth(60);
+		
+		HBox buildPathHBox = new HBox(JavaFXUtil.getImageView(30,"directory.png"));
+		buildPathHBox.setAlignment(Pos.BOTTOM_CENTER);
+		buildPathHBox.setMaxWidth(60);
+		buildPathHBox.setMinWidth(60);
+		
+		HBox webConsoleHBox = new HBox(JavaFXUtil.getImageView(25,"web.png"));
+		webConsoleHBox.setAlignment(Pos.BOTTOM_CENTER);
+		webConsoleHBox.setMaxWidth(60);
+		webConsoleHBox.setMinWidth(60);
+		
+		String actionImg = "start.png";
+		if(status) {
+			actionImg = "shutdown.png";
+		}
+		HBox actionHBox = new HBox(JavaFXUtil.getImageView(30,actionImg));
+		actionHBox.setAlignment(Pos.BOTTOM_CENTER);
+		actionHBox.setMaxWidth(60);
+		actionHBox.setMinWidth(60);
+		
+		
+		actionHBox.setOnMouseClicked(new EventHandler<MouseEvent>() {
+	        @Override
+	        public void handle(MouseEvent e) {
+	        	
+	        	boolean status = FindAllFile.pingHost(hostFinal, Integer.parseInt(portFinal), 10);
+	        	
+	        	ImageView view = (ImageView) actionHBox.getChildren().get(0);
+	        	
+	        	ImageView statusview = (ImageView) imageHBox.getChildren().get(0);
+	        	
+	        	 
+	        	if(status) {
+		        	view.setImage(new Image("start.png"));
+	        		shutdownApplication(dir);
+	        		statusview.setImage(new Image("down.gif"));
+	        	}else {
+		        	view.setImage(new Image("shutdown.png"));
+	        		restartApplication(dir);
+	        		statusview.setImage(new Image("up.gif"));
+	        	}
+	        	
+	        }
+	    });
+		
+		webConsoleHBox.setOnMouseClicked(new EventHandler<MouseEvent>() {
+	        @Override
+	        public void handle(MouseEvent e) {
+	        	getHostServices().showDocument(url);
+	        }
+	    });
+		
+		buildPathHBox.setOnMouseClicked(new EventHandler<MouseEvent>() {
+	        @Override
+	        public void handle(MouseEvent e) {
+				ProcessBuilder processBuilder = new ProcessBuilder();
+				try {
+				    processBuilder.command("bash", "-c", "nautilus "+dir);
+					processBuilder.start();
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+	        }
+	    });
+		
+		HBox dynamicBox = new HBox();
+		if(isDynamic) {
+			dynamicBox.getChildren().add(JavaFXUtil.getImageView(25,"dynamic.gif"));
+		}
+		dynamicBox.setAlignment(Pos.BOTTOM_CENTER);
+		dynamicBox.setMaxWidth(60);
+		dynamicBox.setMinWidth(60);
+		
+		HBox hBox = new HBox(snoLb,nameLb,versionLb,editionLb,imageHBox,dbTypeLb,dynamicBox,buildPathHBox,webConsoleHBox,actionHBox);
+		hBox.setSpacing(20);
+		hBox.setPadding(new Insets(20));
+		hBox.setAlignment(Pos.CENTER_LEFT);
+	    hBox.setBorder(new Border(new BorderStroke(Color.GREEN, BorderStrokeStyle.SOLID, null , null)));
+
+		return hBox;
+	}
 
 	private void addUIControlsForPatchMaker(GridPane gridPane,Stage primaryStage) {
 		// Add Header
@@ -498,6 +745,18 @@ public class PatchMaker extends Application {
 		// Adds new Inner Class files - Ends 
 		return toReturn;
 	}
+	
+	private static String shutdownApplication(String path) {
+		String out = "";
+		try{
+			Runtime run= Runtime.getRuntime();
+			File s=new File(path);
+			run.exec("sh shutdownApplicationsManager.sh -force", null, s);
+		}catch (Exception e) {
+			out=e.getMessage();
+		}
+		return out;
+	}
 
 	private static String restartApplication(String path) {
 		String out="starting..."; 
@@ -524,5 +783,5 @@ public class PatchMaker extends Application {
 		}
 		return out;
 	}
-
 }
+

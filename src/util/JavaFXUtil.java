@@ -32,6 +32,12 @@ public class JavaFXUtil {
 	private static String lastSourcePath = System.getProperty("user.home");
 	private static String lastBuildPath = System.getProperty("user.home");
 	
+	public static Label getLabel(String text, int size) {
+		Label lb = new Label(text);
+		lb.setMinWidth(size);
+		lb.setMaxWidth(size);
+		return lb;
+	}
 
 	public static GridPane createFormPane() {
 		GridPane gridPane = new GridPane();
@@ -59,6 +65,66 @@ public class JavaFXUtil {
 
 		gridPane.getColumnConstraints().addAll(columnOneConstraints, columnTwoConstrains);
 
+		return gridPane;
+	}
+	
+	public static GridPane createFormPaneForOuterDash() {
+		GridPane gridPane = new GridPane();
+		// Position the pane at the center of the screen, both vertically and horizontally
+		gridPane.setAlignment(Pos.CENTER);
+
+		// Set a padding of 20px on each side
+		gridPane.setPadding(new Insets(20, 20, 20, 0));
+
+		// Set the horizontal gap between columns
+		gridPane.setHgap(10);
+
+		// Set the vertical gap between rows
+		gridPane.setVgap(10);
+
+		// Add Column Constraints
+
+		// columnOneConstraints will be applied to all the nodes placed in column one.
+		ColumnConstraints columnOneConstraints = new ColumnConstraints(20, 20, 20);
+		columnOneConstraints.setHalignment(HPos.CENTER);
+
+		// columnTwoConstraints will be applied to all the nodes placed in column two.
+		ColumnConstraints columnTwoConstrains = new ColumnConstraints(200,200, Double.MAX_VALUE);
+		columnTwoConstrains.setHalignment(HPos.CENTER);
+		columnTwoConstrains.setHgrow(Priority.ALWAYS);
+
+		gridPane.getColumnConstraints().addAll(columnOneConstraints, columnTwoConstrains);
+
+		return gridPane;
+	}
+	
+	public static GridPane createGridPaneForDash(HPos value) {
+		GridPane gridPane = new GridPane();
+		// Position the pane at the center of the screen, both vertically and horizontally
+		gridPane.setAlignment(Pos.CENTER_LEFT);
+
+		// Set a padding of 20px on each side
+		//gridPane.setPadding(new Insets(10, 10, 10, 0));
+
+		// Set the horizontal gap between columns
+		//gridPane.setHgap(20);
+
+		// Set the vertical gap between rows
+		//gridPane.setVgap(10);
+
+		// Add Column Constraints
+		
+		// columnOneConstraints will be applied to all the nodes placed in column one.
+		ColumnConstraints columnOneConstraints = new ColumnConstraints(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE, Double.MAX_VALUE);
+		columnOneConstraints.setHalignment(value);
+
+		
+		// columnTwoConstraints will be applied to all the nodes placed in column two.
+		ColumnConstraints columnTwoConstrains = new ColumnConstraints(200,200, Double.MAX_VALUE);
+		columnTwoConstrains.setHgrow(Priority.ALWAYS);
+		
+		gridPane.getColumnConstraints().addAll(columnOneConstraints);
+		
 		return gridPane;
 	}
 
@@ -247,10 +313,20 @@ public class JavaFXUtil {
 	     mb.getMenus().addAll(menu); 
 	     return new VBox(mb); 
 	}
-	
-	 public static void populateCompanyName(ComboBox<String> combo) {
-        combo.getItems().add("Intel");
-        combo.getItems().add("Apple");
-        combo.getItems().add("Microsoft");
-	 }
+	public static ImageView getBuildStatusImage(boolean status) {
+		String path = "down.gif";
+		if(status) {
+			path = "up.gif";
+		}
+		return getImageView(20, path);
+	}
+	public static ImageView getImageView(int size,String path) {
+		Image img = new Image(path);
+		ImageView view = new ImageView(img);
+		view.setFitHeight(size);
+		view.setFitWidth(size);
+		//view.setFitHeight(20);
+		view.setPreserveRatio(true);
+		return view;
+	}
 }
